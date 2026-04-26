@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포트폴리오 비교 2025 vs 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f4;
+    --muted: #8a8fa8;
+    --accent: #4e9bff;
+    --c-tech: #378ADD;
+    --c-etf: #1D9E75;
+    --c-health: #9b7fdd;
+    --c-div: #EF9F27;
+    --c-con: #D4537E;
+    --c-def: #D85A30;
+    --c-auto: #888780;
+    --c-gold: #BA7517;
+    --c-crypto: #534AB7;
+    --c-cash: #5DCAA5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #13172280, transparent);
+  }
+  .header-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .header-title { font-size: clamp(20px, 5vw, 26px); font-weight: 700; line-height: 1.3; }
+  .header-title span { color: var(--accent); }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi {
+    background: var(--surface);
+    padding: 14px 16px;
+    position: relative;
+  }
+  .kpi-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-value { font-size: 18px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .kpi-sub { font-size: 11px; margin-top: 2px; }
+  .up { color: #1D9E75; }
+  .dn { color: #D85A30; }
+
+  /* TAB NAV */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 13px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn.on {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  /* PANES */
+  .pane { display: none; padding: 16px; }
+  .pane.on { display: block; }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    margin-top: 20px;
+  }
+  .sec-title:first-child { margin-top: 4px; }
+
+  /* YEAR TOGGLE */
+  .yr-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .yr-btn {
+    flex: 1;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .yr-btn.on {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* CHART WRAP */
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* LEGEND GRID */
+  .leg-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin: 14px 0;
+  }
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 9px 10px;
+  }
+  .lbox { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .li-name { font-size: 11px; color: var(--text); flex: 1; }
+  .li-pct { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent); font-weight: 500; }
+  .li-amt { font-size: 10px; color: var(--muted); margin-left: 2px; }
+
+  /* COMPARE ROW */
+  .cmp-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .cmp-card {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .cmp-card-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  /* STOCK LIST */
+  .stock-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .stock-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--surface2);
+    border-radius: 7px;
+  }
+  .stock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stock-name { font-size: 12px; color: var(--text); flex: 1; }
+  .stock-broker { font-size: 9px; color: var(--muted); background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 4px; }
+  .stock-val { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); }
+
+  /* SECTOR FILTER */
+  .sector-filter {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+  .sector-filter::-webkit-scrollbar { display: none; }
+  .sf-btn {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sf-btn.on {
+    color: #fff;
+    border-color: transparent;
+  }
+
+  /* CHANGE BADGE */
+  .change-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .change-badge.up { background: rgba(29,158,117,0.15); color: #1D9E75; }
+  .change-badge.dn { background: rgba(216,90,48,0.15); color: #D85A30; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Investment Portfolio</div>
+  <div class="header-title">자산 비교 <span>2025 vs 2026</span></div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-label">2025.03 순자산</div>
+    <div class="kpi-value" style="font-size:16px;">8,841만</div>
+    <div class="kpi-sub" style="color:var(--muted);">총자산 2.25억</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">2026.04 순자산</div>
+    <div class="kpi-value" style="font-size:16px;">1.44억</div>
+    <div class="kpi-sub up">+63.5% ↑</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">2025 투자수익률</div>
+    <div class="kpi-value up">+1.6%</div>
+    <div class="kpi-sub" style="color:var(--muted);">원금 9,704만</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">2026 투자수익률</div>
+    <div class="kpi-value up">+28.6%</div>
+    <div class="kpi-sub" style="color:var(--muted);">원금 1.47억</div>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn on" onclick="switchTab('sector', this)">섹터 비중</button>
+  <button class="tab-btn" onclick="switchTab('stocks', this)">종목 상세</button>
+  <button class="tab-btn" onclick="switchTab('compare', this)">나란히 비교</button>
+</div>
+
+<!-- ===== 섹터 비중 탭 ===== -->
+<div id="tab-sector" class="pane on">
+  <div class="yr-toggle">
+    <button class="yr-btn on" onclick="switchYear('2025', this)">2025.03</button>
+    <button class="yr-btn" onclick="switchYear('2026', this)">2026.04</button>
+  </div>
+
+  <div class="sec-title">섹터별 비중</div>
+  <div class="chart-wrap" style="height:280px;">
+    <canvas id="donutChart"></canvas>
+  </div>
+
+  <div id="legGrid" class="leg-grid"></div>
+</div>
+
+<!-- ===== 종목 상세 탭 ===== -->
+<div id="tab-stocks" class="pane">
+  <div class="yr-toggle">
+    <button class="yr-btn on" onclick="switchYear2('2025', this)">2025.03</button>
+    <button class="yr-btn" onclick="switchYear2('2026', this)">2026.04</button>
+  </div>
+
+  <div class="sec-title">섹터 필터</div>
+  <div id="sectorFilter" class="sector-filter"></div>
+
+  <div id="stockList" class="stock-list"></div>
+</div>
+
+<!-- ===== 나란히 비교 탭 ===== -->
+<div id="tab-compare" class="pane">
+  <div class="sec-title">섹터 비중 변화</div>
+  <div class="cmp-row">
+    <div class="cmp-card">
+      <div class="cmp-card-label">2025.03</div>
+      <div class="chart-wrap" style="height:160px;"><canvas id="donut25"></canvas></div>
+    </div>
+    <div class="cmp-card">
+      <div class="cmp-card-label">2026.04</div>
+      <div class="chart-wrap" style="height:160px;"><canvas id="donut26"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec-title">섹터별 비중 변화 (%)</div>
+  <div class="chart-wrap" style="height:340px;"><canvas id="barCompare"></canvas></div>
+
+  <div class="divider"></div>
+  <div class="sec-title">주요 변화 포인트</div>
+  <div id="changeList" class="stock-list"></div>
+</div>
+
+<script>
+const C = {
+  '테크':'#378ADD','지수추종ETF':'#1D9E75','헬스케어':'#9b7fdd',
+  '배당ETF':'#EF9F27','소비재':'#D4537E','방산':'#D85A30',
+  '자동차':'#888780','금·원자재':'#BA7517','가상자산':'#534AB7','현금·저축':'#5DCAA5'
+};
+
+const stocks25 = [
+  {name:'현금·저축',           sector:'현금·저축',  val:81390809, broker:'-'},
+  {name:'VOO',                  sector:'지수추종ETF',val:12647729, broker:'TOSS'},
+  {name:'뱅가드 S&P500 ETF',   sector:'지수추종ETF',val:2914677,  broker:'NH'},
+  {name:'QQQ',                  sector:'지수추종ETF',val:675297,   broker:'TOSS'},
+  {name:'TIGER 나스닥100',      sector:'지수추종ETF',val:624225,   broker:'NH'},
+  {name:'엔비디아',             sector:'테크',       val:5870349+1300543, broker:'BOTH'},
+  {name:'SK하이닉스',           sector:'테크',       val:5148900,  broker:'TOSS'},
+  {name:'테슬라',               sector:'테크',       val:208061+5421093,  broker:'BOTH'},
+  {name:'애플',                 sector:'테크',       val:3473133+1288367, broker:'BOTH'},
+  {name:'알파벳A',              sector:'테크',       val:2450810+1365993, broker:'BOTH'},
+  {name:'마이크로소프트',       sector:'테크',       val:1736795+1782926, broker:'BOTH'},
+  {name:'아마존',               sector:'테크',       val:1572039+1173985, broker:'BOTH'},
+  {name:'TSMC',                 sector:'테크',       val:1186883,  broker:'TOSS'},
+  {name:'메타',                 sector:'테크',       val:1173175,  broker:'NH'},
+  {name:'브로드컴',             sector:'테크',       val:238362+1063764,  broker:'BOTH'},
+  {name:'램 리서치',            sector:'테크',       val:1064825,  broker:'NH'},
+  {name:'KLA',                  sector:'테크',       val:983119,   broker:'NH'},
+  {name:'KODEX 2차전지',        sector:'테크',       val:835830+338850,   broker:'BOTH'},
+  {name:'인텔',                 sector:'테크',       val:807968,   broker:'TOSS'},
+  {name:'LIT (리튬ETF)',        sector:'테크',       val:619952,   broker:'TOSS'},
+  {name:'인튜이티브 머신스',    sector:'테크',       val:608041,   broker:'TOSS'},
+  {name:'코리아써키트',         sector:'테크',       val:567000,   broker:'TOSS'},
+  {name:'유아이패스',           sector:'테크',       val:555462,   broker:'TOSS'},
+  {name:'팔란티어',             sector:'테크',       val:494129,   broker:'TOSS'},
+  {name:'대한전선',             sector:'테크',       val:571500,   broker:'NH'},
+  {name:'XLV (헬스케어ETF)',    sector:'헬스케어',   val:7413839,  broker:'TOSS'},
+  {name:'삼성바이오로직스',     sector:'헬스케어',   val:5070000+5070000, broker:'BOTH'},
+  {name:'일라이 릴리',          sector:'헬스케어',   val:4690363,  broker:'NH'},
+  {name:'노보노디스크',         sector:'헬스케어',   val:1171447,  broker:'TOSS'},
+  {name:'애브비',               sector:'헬스케어',   val:301294,   broker:'TOSS'},
+  {name:'SCHD (배당ETF)',       sector:'배당ETF',    val:6737273,  broker:'TOSS'},
+  {name:'삼양식품',             sector:'소비재',     val:1720000,  broker:'NH'},
+  {name:'코스트코',             sector:'소비재',     val:1363224,  broker:'TOSS'},
+  {name:'SPDR 필수소비재ETF',   sector:'소비재',     val:912251,   broker:'NH'},
+  {name:'동서',                 sector:'소비재',     val:319800+266500,   broker:'BOTH'},
+  {name:'SPDR 금 ETF',          sector:'금·원자재',  val:2528360,  broker:'NH'},
+  {name:'GLD',                  sector:'금·원자재',  val:270253,   broker:'TOSS'},
+];
+
+const stocks26 = [
+  {name:'현금·저축',             sector:'현금·저축',  val:18308988, broker:'-'},
+  {name:'뱅가드 S&P500 ETF',    sector:'지수추종ETF',val:35536173, broker:'NH'},
+  {name:'TIGER 미국S&P500',     sector:'지수추종ETF',val:1154120,  broker:'NH'},
+  {name:'TIGER 미국나스닥100',  sector:'지수추종ETF',val:885975,   broker:'NH'},
+  {name:'SK하이닉스',           sector:'테크',       val:17108000, broker:'TOSS'},
+  {name:'마이크로소프트',       sector:'테크',       val:11437480+3494210, broker:'BOTH'},
+  {name:'엔비디아',             sector:'테크',       val:8077381+4617947,  broker:'BOTH'},
+  {name:'테슬라',               sector:'테크',       val:10073284, broker:'NH'},
+  {name:'알파벳A',              sector:'테크',       val:6884534,  broker:'TOSS'},
+  {name:'브로드컴',             sector:'테크',       val:5664176,  broker:'NH'},
+  {name:'아마존',               sector:'테크',       val:3565542+3613469,  broker:'BOTH'},
+  {name:'램 리서치',            sector:'테크',       val:3964750,  broker:'NH'},
+  {name:'메타',                 sector:'테크',       val:2991260,  broker:'TOSS'},
+  {name:'TSMC',                 sector:'테크',       val:2377895,  broker:'TOSS'},
+  {name:'대한전선',             sector:'테크',       val:2142500,  broker:'TOSS'},
+  {name:'글로벌엑스 리튬ETF',  sector:'테크',       val:1237662,  broker:'NH'},
+  {name:'SPDR 헬스케어 ETF',   sector:'헬스케어',   val:10861382, broker:'NH'},
+  {name:'삼성바이오로직스',     sector:'헬스케어',   val:10696000, broker:'TOSS'},
+  {name:'슈왑 배당주 ETF',     sector:'배당ETF',    val:14931708, broker:'NH'},
+  {name:'SPDR 필수소비재ETF',  sector:'소비재',     val:7861042,  broker:'NH'},
+  {name:'동서',                 sector:'소비재',     val:3478050,  broker:'TOSS'},
+  {name:'농심',                 sector:'소비재',     val:1526000,  broker:'TOSS'},
+  {name:'한화에어로스페이스',   sector:'방산',       val:7315000,  broker:'TOSS'},
+  {name:'현대차',               sector:'자동차',     val:4617000,  broker:'TOSS'},
+  {name:'SPDR 금 ETF',         sector:'금·원자재',  val:11519164, broker:'NH'},
+  {name:'KODEX WTI원유선물',   sector:'금·원자재',  val:549670,   broker:'TOSS'},
+  {name:'비트코인·리플·이더리움',sector:'가상자산', val:16626317, broker:'업비트'},
+];
+
+function buildSectors(stocks) {
+  const m = {};
+  stocks.forEach(s => { m[s.sector] = (m[s.sector]||0) + s.val; });
+  const total = Object.values(m).reduce((a,b)=>a+b,0);
+  const sorted = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  return { map: m, total, sorted };
+}
+
+const s25 = buildSectors(stocks25);
+const s26 = buildSectors(stocks26);
+
+let activeYear = '2025';
+let activeYear2 = '2025';
+let activeSector = 'ALL';
+let donutChart = null;
+
+// ===== 도넛 차트 =====
+function renderDonut(s, canvasId) {
+  const existing = Chart.getChart(canvasId);
+  if (existing) existing.destroy();
+  return new Chart(document.getElementById(canvasId), {
+    type: 'doughnut',
+    data: {
+      labels: s.sorted.map(x=>x[0]),
+      datasets: [{ data: s.sorted.map(x=>x[1]), backgroundColor: s.sorted.map(x=>C[x[0]]), borderWidth: 1, borderColor: '#0f1117', hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${(ctx.raw/s.total*100).toFixed(1)}%  |  ${Math.round(ctx.raw/1e4).toLocaleString()}만원` }}
+      }
+    }
+  });
+}
+
+function renderLegend(s) {
+  const el = document.getElementById('legGrid');
+  el.innerHTML = '';
+  s.sorted.forEach(([sec, val]) => {
+    const pct = (val/s.total*100).toFixed(1);
+    const d = document.createElement('div');
+    d.className = 'leg-item';
+    d.innerHTML = `<span class="lbox" style="background:${C[sec]}"></span>
+      <span class="li-name">${sec}</span>
+      <span class="li-pct">${pct}%</span>`;
+    el.appendChild(d);
+  });
+}
+
+function refreshSectorTab() {
+  const s = activeYear === '2025' ? s25 : s26;
+  renderDonut(s, 'donutChart');
+  renderLegend(s);
+}
+
+function switchYear(yr, btn) {
+  activeYear = yr;
+  document.querySelectorAll('#tab-sector .yr-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  refreshSectorTab();
+}
+
+// ===== 종목 상세 탭 =====
+function renderStockTab() {
+  const stocks = activeYear2 === '2025' ? stocks25 : stocks26;
+  const s = activeYear2 === '2025' ? s25 : s26;
+
+  // 섹터 필터 버튼
+  const filterEl = document.getElementById('sectorFilter');
+  filterEl.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'sf-btn' + (activeSector==='ALL'?' on':'');
+  allBtn.style.background = activeSector==='ALL' ? '#4e9bff' : '';
+  allBtn.textContent = '전체';
+  allBtn.onclick = () => { activeSector='ALL'; renderStockTab(); };
+  filterEl.appendChild(allBtn);
+
+  s.sorted.forEach(([sec]) => {
+    const b = document.createElement('button');
+    b.className = 'sf-btn' + (activeSector===sec?' on':'');
+    if (activeSector===sec) b.style.background = C[sec];
+    b.textContent = sec;
+    b.onclick = () => { activeSector=sec; renderStockTab(); };
+    filterEl.appendChild(b);
+  });
+
+  // 종목 리스트
+  const listEl = document.getElementById('stockList');
+  listEl.innerHTML = '';
+  const filtered = activeSector==='ALL' ? [...stocks].sort((a,b)=>b.val-a.val) : stocks.filter(s=>s.sector===activeSector).sort((a,b)=>b.val-a.val);
+  const total = stocks.reduce((a,s)=>a+s.val,0);
+
+  filtered.forEach(stock => {
+    const pct = (stock.val/total*100).toFixed(1);
+    const row = document.createElement('div');
+    row.className = 'stock-row';
+    const brokerLabel = {TOSS:'TOSS',NH:'NH',BOTH:'T+N','-':'',업비트:'업비트'}[stock.broker]||'';
+    row.innerHTML = `
+      <span class="stock-dot" style="background:${C[stock.sector]}"></span>
+      <span class="stock-name">${stock.name}${stock.broker==='BOTH'?' ✦':''}</span>
+      ${brokerLabel?`<span class="stock-broker">${brokerLabel}</span>`:''}
+      <span class="stock-val">${pct}%  ${Math.round(stock.val/1e4).toLocaleString()}만</span>
+    `;
+    listEl.appendChild(row);
+  });
+}
+
+function switchYear2(yr, btn) {
+  activeYear2 = yr;
+  activeSector = 'ALL';
+  document.querySelectorAll('#tab-stocks .yr-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderStockTab();
+}
+
+// ===== 나란히 비교 탭 =====
+function renderCompare() {
+  renderDonut(s25, 'donut25');
+  renderDonut(s26, 'donut26');
+
+  // 섹터 비중 변화 가로 막대
+  const allSectors = [...new Set([...s25.sorted.map(s=>s[0]), ...s26.sorted.map(s=>s[0])])];
+  const pct25 = sec => ((s25.map[sec]||0)/s25.total*100);
+  const pct26 = sec => ((s26.map[sec]||0)/s26.total*100);
+  const sorted = allSectors.sort((a,b) => pct26(b)-pct26(a));
+
+  const existing = Chart.getChart('barCompare');
+  if (existing) existing.destroy();
+  new Chart(document.getElementById('barCompare'), {
+    type: 'bar',
+    data: {
+      labels: sorted,
+      datasets: [
+        { label:'2025.03', data: sorted.map(pct25), backgroundColor: sorted.map(s=>C[s]+'55'), borderRadius:3, barThickness:14 },
+        { label:'2026.04', data: sorted.map(pct26), backgroundColor: sorted.map(s=>C[s]),      borderRadius:3, barThickness:14 },
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color:'#8a8fa8', font:{size:11}, boxWidth:10 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` }}
+      },
+      scales: {
+        x: { grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8a8fa8',font:{size:10}, callback:v=>v+'%'} },
+        y: { grid:{display:false}, ticks:{color:'#f0f0f4',font:{size:11}} }
+      }
+    }
+  });
+
+  // 주요 변화 리스트
+  const changeEl = document.getElementById('changeList');
+  changeEl.innerHTML = '';
+  const changes = allSectors.map(sec => ({ sec, diff: pct26(sec)-pct25(sec) })).sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff)).slice(0,6);
+  changes.forEach(({sec, diff}) => {
+    const row = document.createElement('div');
+    row.className = 'stock-row';
+    const cls = diff>0?'up':'dn';
+    const sign = diff>0?'▲':'▼';
+    row.innerHTML = `
+      <span class="stock-dot" style="background:${C[sec]}"></span>
+      <span class="stock-name">${sec}</span>
+      <span class="change-badge ${cls}">${sign} ${Math.abs(diff).toFixed(1)}%p</span>
+      <span class="stock-val">${pct25(sec).toFixed(1)}% → ${pct26(sec).toFixed(1)}%</span>
+    `;
+    changeEl.appendChild(row);
+  });
+}
+
+// ===== 탭 전환 =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  btn.classList.add('on');
+  if (name==='compare') renderCompare();
+  if (name==='stocks') renderStockTab();
+}
+
+// 초기 렌더
+refreshSectorTab();
+</script>
+</body>
+</html>
